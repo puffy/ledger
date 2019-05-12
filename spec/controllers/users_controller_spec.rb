@@ -57,6 +57,13 @@ RSpec.describe UsersController, type: :controller do
         }.to change(User, :count).by(1)
       end
 
+      it "log operation after create a new User" do
+        expect {
+          post :create, params: {user: valid_attributes}, session: valid_session
+        }.to change(Operation, :count).by(1)
+        expect(Operation.last.name).to eq 'create'
+      end
+
       it "renders a JSON response with the new user" do
 
         post :create, params: {user: valid_attributes}, session: valid_session
@@ -77,21 +84,29 @@ RSpec.describe UsersController, type: :controller do
   end
 
   describe "PUT #update" do
+    let(:user) { User.create! valid_attributes }
+
     context "with valid params" do
       let(:new_attributes) {
         { name: 'Test User renamed' }
       }
 
       it "updates the requested user" do
-        user = User.create! valid_attributes
         put :update, params: {id: user.to_param, user: new_attributes}, session: valid_session
         user.reload
         expect(user.name).to eq new_attributes[:name]
       end
 
-      it "renders a JSON response with the user" do
-        user = User.create! valid_attributes
+      it "log operation after update the requested user" do
+        user
+        expect {
+          put :update, params: {id: user.to_param, user: new_attributes}, session: valid_session
+        }.to change(Operation, :count).by(1)
+        expect(Operation.first.name).to eq 'create'
+        expect(Operation.last.name).to eq 'update'
+      end
 
+      it "renders a JSON response with the user" do
         put :update, params: {id: user.to_param, user: valid_attributes}, session: valid_session
         expect(response).to have_http_status(:ok)
         expect(response.content_type).to eq('application/json')
@@ -100,8 +115,6 @@ RSpec.describe UsersController, type: :controller do
 
     context "with invalid params" do
       it "renders a JSON response with errors for the user" do
-        user = User.create! valid_attributes
-
         put :update, params: {id: user.to_param, user: invalid_attributes}, session: valid_session
         expect(response).to have_http_status(:unprocessable_entity)
         expect(response.content_type).to eq('application/json')
