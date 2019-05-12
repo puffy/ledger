@@ -1,6 +1,4 @@
 class UsersController < ApplicationController
-  before_action :set_user, only: [:update]
-
   # GET /users
   def index
     @users = User.all
@@ -21,7 +19,12 @@ class UsersController < ApplicationController
 
   # PATCH/PUT /users/1
   def update
-    if @user.update(user_params)
+    User.transaction do
+      @user = User.lock.find(params[:id]) # lock record by id
+      @user.update(user_params)
+    end
+
+    if @user.valid?
       render json: @user
     else
       render json: @user.errors, status: :unprocessable_entity
@@ -29,11 +32,6 @@ class UsersController < ApplicationController
   end
 
   private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_user
-      @user = User.find(params[:id])
-    end
-
     # Only allow a trusted parameter "white list" through.
     def user_params
       params.require(:user).permit(:name, :balance)
