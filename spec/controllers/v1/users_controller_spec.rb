@@ -69,7 +69,6 @@ RSpec.describe V1::UsersController, type: :controller do
         post :create, params: {user: valid_attributes}, session: valid_session
         expect(response).to have_http_status(:created)
         expect(response.content_type).to eq('application/json')
-        expect(response.location).to eq(v1_user_url(User.last))
       end
     end
 
@@ -83,43 +82,27 @@ RSpec.describe V1::UsersController, type: :controller do
     end
   end
 
-  describe "PUT #update" do
+  describe "PATCH #update_balance" do
     let(:user) { User.create! valid_attributes }
+    let(:new_attributes) { { balance: 500 } }
 
     context "with valid params" do
-      let(:new_attributes) {
-        { name: 'Test User renamed' }
-      }
-
-      it "updates the requested user" do
-        put :update, params: {id: user.to_param, user: new_attributes}, session: valid_session
+      it "updates balance of the requested user" do
+        expect(user.balance).to be_zero
+        patch :update_balance, params: {id: user.to_param, user: new_attributes}, session: valid_session
         user.reload
-        expect(user.name).to eq new_attributes[:name]
-      end
-
-      it "log operation after update the requested user" do
-        user
-        expect {
-          put :update, params: {id: user.to_param, user: new_attributes}, session: valid_session
-        }.to change(Operation, :count).by(1)
-        expect(Operation.first.name).to eq 'create'
-        expect(Operation.last.name).to eq 'update'
-      end
-
-      it "renders a JSON response with the user" do
-        put :update, params: {id: user.to_param, user: valid_attributes}, session: valid_session
         expect(response).to have_http_status(:ok)
         expect(response.content_type).to eq('application/json')
+        expect(user.balance).to eq 500
       end
     end
 
     context "with invalid params" do
       it "renders a JSON response with errors for the user" do
-        put :update, params: {id: user.to_param, user: invalid_attributes}, session: valid_session
-        expect(response).to have_http_status(:unprocessable_entity)
-        expect(response.content_type).to eq('application/json')
+        expect {
+          patch :update_balance, params: {id: user.to_param}, session: valid_session
+        }.to raise_exception(ActionController::ParameterMissing)
       end
     end
   end
-
 end

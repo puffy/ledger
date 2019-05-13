@@ -11,17 +11,19 @@ class V1::UsersController < ApplicationController
     @user = User.new(user_params)
 
     if @user.save
-      render json: @user, status: :created, location: [:v1, @user]
+      render json: @user, status: :created
     else
       render json: @user.errors, status: :unprocessable_entity
     end
   end
 
-  # PATCH/PUT /users/1
-  def update
+  def update_balance
+    required_params = params.require(:user).permit(:balance)
+
     User.transaction do
       @user = User.lock.find(params[:id]) # lock record by id
-      @user.update(user_params)
+      @user.balance = required_params[:balance]
+      @user.save
     end
 
     if @user.valid?
@@ -34,6 +36,6 @@ class V1::UsersController < ApplicationController
   private
     # Only allow a trusted parameter "white list" through.
     def user_params
-      params.require(:user).permit(:name, :balance)
+      params.require(:user).permit(:name)
     end
 end
