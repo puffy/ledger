@@ -49,6 +49,14 @@ RSpec.describe V1::UsersController, type: :controller do
     end
   end
 
+  describe "GET #operations" do
+    it "returns a success response" do
+      user = User.create! valid_attributes
+      get :operations, params: {id: user.to_param}, session: valid_session
+      expect(response).to be_successful
+    end
+  end
+
   describe "POST #create" do
     context "with valid params" do
       it "creates a new User" do

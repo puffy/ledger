@@ -1,7 +1,10 @@
 Rails.application.routes.draw do
   concern :users do
     resources :users, only: [:create, :index] do
-      patch :update_balance, on: :member
+      member do
+        patch :update_balance
+        get :operations
+      end
     end
   end
 

@@ -3,8 +3,6 @@ class V1::UsersController < ApplicationController
 
   # GET /users
   def index
-    page = params[:page].to_i
-    offset = page > 1 ? (page - 1) * INDEX_LIMIT : 0
     @users = User.order(:id).limit(INDEX_LIMIT).offset(offset)
     render json: @users
   end
@@ -18,6 +16,13 @@ class V1::UsersController < ApplicationController
     else
       render json: @user.errors, status: :unprocessable_entity
     end
+  end
+
+  def operations
+    @user = User.find(params[:id])
+    @operations = @user.operations.order(:created_at).limit(INDEX_LIMIT).offset(offset)
+    render json: {'user' => @user.as_json(only: [:id, :name])}.
+      merge('operations' => @operations.as_json)
   end
 
   def update_balance
@@ -40,5 +45,13 @@ class V1::UsersController < ApplicationController
     # Only allow a trusted parameter "white list" through.
     def user_params
       params.require(:user).permit(:name)
+    end
+
+    def page
+      @page ||= params[:page].to_i
+    end
+
+    def offset
+      @offset ||= page > 1 ? (page - 1) * INDEX_LIMIT : 0
     end
 end
