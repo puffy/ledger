@@ -26,11 +26,11 @@ class V1::UsersController < ApplicationController
   end
 
   def update_balance
-    required_params = params.require(:user).permit(:balance)
+    balance_value = params.require(:user).fetch(:balance)
 
     User.transaction do
       @user = User.lock.find(params[:id]) # lock record by id
-      @user.balance = required_params[:balance]
+      @user.balance = balance_value
       @user.save
       @user.log_operation('update') if @user.valid?
     end
