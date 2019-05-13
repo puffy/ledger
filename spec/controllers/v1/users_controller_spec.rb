@@ -65,13 +65,6 @@ RSpec.describe V1::UsersController, type: :controller do
         }.to change(User, :count).by(1)
       end
 
-      it "log operation after create a new User" do
-        expect {
-          post :create, params: {user: valid_attributes}, session: valid_session
-        }.to change(Operation, :count).by(1)
-        expect(Operation.last.name).to eq 'create'
-      end
-
       it "renders a JSON response with the new user" do
 
         post :create, params: {user: valid_attributes}, session: valid_session
