@@ -23,7 +23,7 @@ require 'rails_helper'
 # removed from Rails core in Rails 5, but can be added back in via the
 # `rails-controller-testing` gem.
 
-RSpec.describe UsersController, type: :controller do
+RSpec.describe V1::UsersController, type: :controller do
 
   # This should return the minimal set of attributes required to create a valid
   # User. As you add validations to User, be sure to
@@ -49,6 +49,14 @@ RSpec.describe UsersController, type: :controller do
     end
   end
 
+  describe "GET #operations" do
+    it "returns a success response" do
+      user = User.create! valid_attributes
+      get :operations, params: {id: user.to_param}, session: valid_session
+      expect(response).to be_successful
+    end
+  end
+
   describe "POST #create" do
     context "with valid params" do
       it "creates a new User" do
@@ -62,7 +70,6 @@ RSpec.describe UsersController, type: :controller do
         post :create, params: {user: valid_attributes}, session: valid_session
         expect(response).to have_http_status(:created)
         expect(response.content_type).to eq('application/json')
-        expect(response.location).to eq(user_url(User.last))
       end
     end
 
@@ -76,37 +83,35 @@ RSpec.describe UsersController, type: :controller do
     end
   end
 
-  describe "PUT #update" do
+  describe "PATCH #update_balance" do
+    let(:user) { User.create! valid_attributes }
+    let(:new_attributes) { { balance: 500 } }
+
     context "with valid params" do
-      let(:new_attributes) {
-        { name: 'Test User renamed' }
-      }
-
-      it "updates the requested user" do
-        user = User.create! valid_attributes
-        put :update, params: {id: user.to_param, user: new_attributes}, session: valid_session
+      it "updates balance of the requested user" do
+        expect(user.balance).to be_zero
+        patch :update_balance, params: {id: user.to_param, user: new_attributes}, session: valid_session
         user.reload
-        expect(user.name).to eq new_attributes[:name]
-      end
-
-      it "renders a JSON response with the user" do
-        user = User.create! valid_attributes
-
-        put :update, params: {id: user.to_param, user: valid_attributes}, session: valid_session
         expect(response).to have_http_status(:ok)
         expect(response.content_type).to eq('application/json')
+        expect(user.balance).to eq 500
+      end
+
+      it "log operation" do
+        user
+        expect {
+          patch :update_balance, params: {id: user.to_param, user: new_attributes}, session: valid_session
+        }.to change(Operation, :count).by(1)
+        expect(Operation.last.name).to eq 'update'
       end
     end
 
     context "with invalid params" do
       it "renders a JSON response with errors for the user" do
-        user = User.create! valid_attributes
-
-        put :update, params: {id: user.to_param, user: invalid_attributes}, session: valid_session
-        expect(response).to have_http_status(:unprocessable_entity)
-        expect(response.content_type).to eq('application/json')
+        expect {
+          patch :update_balance, params: {id: user.to_param}, session: valid_session
+        }.to raise_exception(ActionController::ParameterMissing)
       end
     end
   end
-
 end
