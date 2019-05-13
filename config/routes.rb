@@ -1,3 +1,9 @@
 Rails.application.routes.draw do
-  resources :users, only: [:create, :index, :update]
+  concern :users do
+    resources :users, only: [:create, :index, :update]
+  end
+
+  namespace :v1 do
+    concerns :users
+  end
 end
