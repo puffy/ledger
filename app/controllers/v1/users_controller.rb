@@ -1,8 +1,11 @@
 class V1::UsersController < ApplicationController
+  INDEX_LIMIT = 50
+
   # GET /users
   def index
-    @users = User.all
-
+    page = params[:page].to_i
+    offset = page > 1 ? (page - 1) * INDEX_LIMIT : 0
+    @users = User.order(:id).limit(INDEX_LIMIT).offset(offset)
     render json: @users
   end
 
