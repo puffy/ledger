@@ -32,6 +32,7 @@ class V1::UsersController < ApplicationController
       @user = User.lock.find(params[:id]) # lock record by id
       @user.balance = required_params[:balance]
       @user.save
+      @user.log_operation('update') if @user.valid?
     end
 
     if @user.valid?

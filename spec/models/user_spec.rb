@@ -8,14 +8,5 @@ RSpec.describe User, type: :model do
       expect { user }.to change(Operation, :count).by(1)
       expect(Operation.last.name).to eq 'create'
     end
-
-    it 'creates Operation after update' do
-      user
-      expect {
-        user.update(name: 'Test2')
-      }.to change(Operation, :count).by(1)
-      expect(Operation.count).to eq 2
-      expect(Operation.last.name).to eq 'update'
-    end
   end
 end

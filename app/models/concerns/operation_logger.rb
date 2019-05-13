@@ -5,10 +5,7 @@ module OperationLogger
     has_many :operations
 
     after_commit -> { log_operation('create') }, on: :create
-    after_commit -> { log_operation('update') }, on: :update
   end
-
-  private
 
   def log_operation(operation_name)
     operations.create! do |o|

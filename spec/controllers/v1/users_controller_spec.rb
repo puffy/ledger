@@ -96,6 +96,14 @@ RSpec.describe V1::UsersController, type: :controller do
         expect(response.content_type).to eq('application/json')
         expect(user.balance).to eq 500
       end
+
+      it "log operation" do
+        user
+        expect {
+          patch :update_balance, params: {id: user.to_param, user: new_attributes}, session: valid_session
+        }.to change(Operation, :count).by(1)
+        expect(Operation.last.name).to eq 'update'
+      end
     end
 
     context "with invalid params" do
